@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>牛财通</title>
+    <style type="text/css">
+      a {
+        color: black;
+      }
+      a:link {
+        text-decoration: none;
+      } /* 未被访问的链接 */
+      a:visited {
+        text-decoration: none;
+      } /* 已被访问的链接 */
+      a:hover {
+        color: #4e6ef2;
+        text-decoration: none;
+      } /* 鼠标指针移动到链接上 */
+      a:active {
+        text-decoration: none;
+      } /* 正在被点击的链接 */
+
+      /* 左边的部分 */
+      .left {
+        line-height: 22px;
+        font-size: 15px;
+        text-align: left;
+        margin: 22px 0 22px 0;
+        margin-left: 30px;
+      }
+      /* 右边的设置和登录按钮 */
+      .right {
+        position: absolute;
+        right: 0px;
+        width: 150px;
+      }
+      .dropdown {
+        text-align: center;
+        position: relative;
+        display: inline-block;
+        padding-right: 23px;
+      }
+      .dropdown-content {
+        list-style: none;
+        position: absolute;
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 61px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        padding: 12px 16px;
+        line-height: 30px;
+        z-index: 10px;
+      }
+
+      .dropdown:hover .dropdown-content {
+        display: block;
+      }
+      .box {
+        width: 650px;
+        height: 0px;
+        margin: 200px auto 100px;
+        position: relative;
+      }
+      input {
+        outline: none;
+        border: 2px solid #a7aab5;
+        height: 45px;
+        width: 550px;
+        box-sizing: border-box;
+        text-indent: 6px;
+        font-size: 16px;
+        border-radius: 10px 0 0 10px;
+      }
+      /* 输入框聚焦 */
+      input:focus {
+        color: #000;
+        background-color: #fff;
+        border-color: #db450f !important;
+        height: 45px;
+        border-radius: 10px 0 10px 10px;
+      }
+      .gd {
+        color: #fff;
+        background: rgb(226, 80, 31);
+        line-height: 24px;
+        font-size: 13px;
+        text-align: center;
+        border-bottom: 1px solid rgb(222, 79, 22);
+        margin-left: 7px;
+        margin-top: 10px;
+        cursor: default;
+      }
+      .hot-title {
+        width: 654px;
+        position: relative;
+        margin: 45px auto 0;
+      }
+      .searchhot div {
+        width: 50%;
+        overflow: hidden;
+        float: left;
+        line-height: 32px;
+      }
+      .search {
+        font-size: 17px;
+      }
+      .title-content-title {
+        margin: 10px 0 0;
+        /* margin-top: 6px;  */
+        float: left;
+        height: 32px;
+        line-height: 32px;
+      }
+      .title-content-title1 {
+        margin: 10px 0 0;
+        margin-left: 90px;
+        float: left;
+        height: 32px;
+        line-height: 32px;
+      }
+      .right-hot {
+        float: right;
+        line-height: 20px;
+      }
+      .top1 {
+        color: #fe2d46;
+      }
+      .top2 {
+        color: #f60;
+      }
+      .top3 {
+        color: #faa90e;
+      }
+      .other-top {
+        background: 0 0;
+        color: #9195a3;
+      }
+      button {
+        height: 45px;
+        width: 100px;
+        border: none;
+        color: white;
+        box-sizing: border-box;
+        background-color: #e85212;
+        position: absolute;
+        left: 550px;
+        border-radius: 0 10px 10px 0;
+        cursor: pointer;
+      }
+      .imges {
+        position: absolute;
+        top: -140px;
+        left: 200px;
+      }
+      .cen {
+        text-align: center;
+        margin-bottom: 80px;
+      }
+      .buttom {
+        text-align: center;
+        padding-left: 30px;
+        position: fixed;
+        bottom: 0px;
+        left: 0;
+        height: 40px;
+        line-height: 40px;
+        text-align: center;
+        font-size: 10px;
+        background-color: #fbfbfb;
+	
+      }
+      /* 点击照相机，按照图片来搜索 */
+      .soutu-btn {
+        background: #fff
+          url(https://dss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/searchbox/nicon-10750f3f7d.png)
+          no-repeat;
+        width: 24px;
+        height: 20px;
+      }
+
+      /* 登录按钮的下拉登录图片 */
+      .settings {
+        position: relative;
+        left: 13px;
+        background-color: #df661b;
+        color: #fff;
+        border-radius: 5px;
+        font-size: 12px;
+        width: 50px;
+        height: 25px;
+        display: inline-block;
+      }
+      .dropdown-settings {
+        position: relative;
+        display: inline-block;
+      }
+
+      .dropdown-content-settings {
+        display: none;
+        position: absolute;
+        right: -10px;
+        background-color: #f9f9f9;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+      }
+
+      .dropdown-settings:hover .dropdown-content-settings {
+        display: block;
+      }
+    </style>
+  </head>
+  <body style="font-family: '小米兰亭'">
+    <div class="left">
+      <a href="news.html" target="blank">新闻</a
+      >&nbsp;&nbsp;&nbsp;&nbsp;
+      <a href="stock.html" target="blank">股票</a
+      >&nbsp;&nbsp;&nbsp;&nbsp;
+      <a href="zichan.html" target="blank">资产</a
+      >&nbsp;&nbsp;&nbsp;&nbsp;
+      <a href="bbs.html" target="blank">社区</a
+      >&nbsp;&nbsp;&nbsp;&nbsp;
+      <a href="blank" target="blank">更多</a
+      >&nbsp;&nbsp;&nbsp;&nbsp;
+      <span class="right">
+        <div class="dropdown">
+          <span>功能</span>
+          <div class="dropdown-content">
+            <a target="blank" href="">个人主页</a>
+            <a target="blank" href="">个人资产</a>
+            <a target="blank" href="">财务数据</a>
+            <a target="blank" href="">搜索热榜</a>
+            <a target="blank" href="">交流社区</a>
+          </div>
+        </div>
+        <div class="dropdown-settings">
+          <a href="login.html"><button class="settings">登录</button></a>
+        </div>
+      </span>
+    </div>
+
+    <div class="box">
+      <form action="http://www.baidu.com/" target="_blank">
+        <div class="imges">
+          <img
+            src="logo.png"
+            alt="牛财通logo"
+            title="牛！"
+            height="130"
+            width="200"
+          />
+        </div>
+        <input type="text"></input>
+        <button>
+          <span class="soutu-btn"></span>
+          <strong class="search">搜索</strong>
+        </button>
+      </form>
+    </div>
+
+    <div class="hot-title">
+      搜索热榜
+      <div class="searchhot">
+        <div class="left-hot">
+          <span class="title-content-title1">
+            <span class="top1">1</span>
+            <a
+              class="five"
+              href="http://quote.eastmoney.com/sz300059.html"
+              >东方财富 300059</a
+            >
+          </span>
+          <span class="title-content-title1">
+            <span class="top2">2</span>
+            <a
+              class="five"
+              href="http://quote.eastmoney.com/sh600000.html"
+              >浦发银行 600000</a
+            >
+          </span>
+          <span class="title-content-title1">
+            <span class="top3">3</span>
+            <a
+              class="five"
+              href="http://quote.eastmoney.com/sz300017.html"
+              >网宿科技 300017</a
+            >
+          </span>
+        </div>
+        <div class="right-hot">
+          <span class="title-content-title1">
+            <span class="other-top">4</span>
+            <a
+              href="http://quote.eastmoney.com/sh600020.html"
+              >中原高速 600020</a
+            >
+          </span>
+          <span class="title-content-title1">
+            <span class="other-top">5</span>
+            <a
+              href="http://quote.eastmoney.com/sh600005.html"
+              >武钢股份 600005</a
+            >
+          </span>
+          <span class="title-content-title1">
+            <span class="other-top">6</span>
+            <a
+              href="http://quote.eastmoney.com/sh600004.html"
+              >白云机场 600004</a
+            >
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="buttom">
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	  <a href="https://www.baidu.com/cache/sethelp/help.html" target="_blank"
+        >设为首页</a
+      >&nbsp;&nbsp;
+      <a href="blank" target="_blank">关于牛财通</a>&nbsp;&nbsp;
+      <a
+        href=""
+        target="_blank"
+        >About NIUCAITONG</a
+      >&nbsp;&nbsp;
+      <a href="http://e.baidu.com/ebaidu/home?refer=888" target="_blank"
+        >推广</a
+      >&nbsp;&nbsp;
+      <a href="" target="_blank"> 意见反馈</a
+      >&nbsp;&nbsp;
+      <a href="" target="_blank">帮助中心</a>
+      ©2022 NIUCAITONG&nbsp;&nbsp; 京ICP证030173号&nbsp;&nbsp;
+      <a
+        href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11000002000001"
+        >京公网安备11000002000001号</a
+      >&nbsp;&nbsp; 京ICP证030173号
+    </div>
+  </body>
+</html>
