@@ -1,3 +1,6 @@
 [submodule "dipiper-server"]
 	path = dipiper-server
 	url = https://github.com/chiro2001/dipiper-server
+[submodule "financial-frontend"]
+	path = financial-frontend
+	url = https://github.com/chiro2001/financial-frontend
