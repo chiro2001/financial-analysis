@@ -1,7 +1,7 @@
 use futures::{StreamExt, TryStreamExt};
 use tracing::info;
-use rpc::World;
-use service_impl::WorldImpl;
+use rpc::Api;
+use service_impl::ApiImpl;
 use tarpc::{
     serde::{Deserialize, Serialize},
     server::Channel,
@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stream = server.map_ok(move |x| {
         info!("Mapping the client session");
         let server = tarpc::server::BaseChannel::with_defaults(x);
-        let service = WorldImpl {};
+        let service = ApiImpl {};
         info!("Spawning client channel");
         tokio::spawn(server.execute(service.serve()))
     });

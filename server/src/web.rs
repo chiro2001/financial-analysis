@@ -8,6 +8,7 @@ use tokio_util::codec::{Framed, LengthDelimitedCodec};
 //use tarpc::Transport;
 use async_tungstenite::tokio::accept_async;
 use std::marker::Unpin;
+use rpc::API_PORT;
 use tokio_serde::{Deserializer, Serializer};
 use ws_stream_tungstenite::*;
 
@@ -34,9 +35,9 @@ pub async fn bind<Item, SinkItem, Codec, CodecFn>(
 {
     info!("Binding RPC TCP Session");
 
-    //Setup the basic args for the socket.
+    // Setup the basic args for the socket.
     let ip: Ipv4Addr = "127.0.0.1".parse::<Ipv4Addr>().unwrap();
-    let addr = SocketAddr::new(IpAddr::V4(ip), 8083);
+    let addr = SocketAddr::new(IpAddr::V4(ip), API_PORT);
 
     //Create the socket
     let stream = stream! {

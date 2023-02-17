@@ -1,16 +1,16 @@
 use std::time::Duration;
 
 use tracing::info;
-use rpc::World;
+use rpc::Api;
 use tarpc::context;
 use tokio::time::{sleep_until, Instant};
 
 #[derive(Clone)]
-pub struct WorldImpl {}
+pub struct ApiImpl {}
 
 #[tarpc::server]
 #[async_trait::async_trait]
-impl World for WorldImpl {
+impl Api for ApiImpl {
     async fn ping(self, _: context::Context) -> Result<String, String> {
         info!("Ping Called.. responding with Pong!");
         Ok("Pong".into())
