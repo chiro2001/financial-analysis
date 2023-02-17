@@ -1,45 +1,38 @@
-use futures::{StreamExt, TryStreamExt};
-use tracing::info;
-use rpc::Api;
-use service_impl::ApiImpl;
-use tarpc::{
-    serde::{Deserialize, Serialize},
-    server::Channel,
-};
-use web::bind;
+use anyhow::Result;
 
-mod service_impl;
-mod web;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt::init();
-    info!("First Message");
-
-    let server = build_server().await.expect("Failed to get server channel");
-    let stream = server.map_ok(move |x| {
-        info!("Mapping the client session");
-        let server = tarpc::server::BaseChannel::with_defaults(x);
-        let service = ApiImpl {};
-        info!("Spawning client channel");
-        tokio::spawn(server.execute(service.serve()))
-    });
-
-    //TODO: Will likely need a way to kill the connection. Need to figure that out.
-    let handle = tokio::spawn(stream.for_each(|_| async {}));
-    handle.await.unwrap();
-    Ok(())
+pub mod api {
+    tonic::include_proto!("financial_analysis");
 }
 
-async fn build_server<Item, SinkItem>(
-) -> Option<impl TryStreamExt<Ok = impl tarpc::Transport<SinkItem, Item>, Error = std::io::Error>>
-    where
-        Item: for<'de> Deserialize<'de> + Unpin,
-        SinkItem: Serialize + Unpin,
-{
-    Some(
-        bind(tokio_serde::formats::Json::<Item, SinkItem>::default)
-            .await
-            .unwrap(),
-    )
+use tonic::{Request, Response, Status};
+use tonic::transport::Server;
+use tracing::info;
+use crate::api::api_rpc_server::{ApiRpc, ApiRpcServer};
+use crate::api::RegisterRequest;
+
+#[derive(Default)]
+pub struct ApiServer {}
+
+#[tonic::async_trait]
+impl ApiRpc for ApiServer {
+    async fn register(&self, request: Request<RegisterRequest>) -> Result<Response<()>, Status> {
+        let data = request.into_inner();
+        info!("req: {}, {}", data.username, data.password);
+        Ok(Response::new(()))
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let addr = "[::1]:51411".parse().unwrap();
+    let greeter = ApiServer::default();
+
+    println!("GreeterServer listening on {}", addr);
+
+    Server::builder()
+        .add_service(ApiRpcServer::new(greeter))
+        .serve(addr)
+        .await?;
+
+    Ok(())
 }

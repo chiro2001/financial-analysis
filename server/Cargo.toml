@@ -6,15 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rpc = { path = "../financial-frontend/rpc" }
-tarpc = { path = "../financial-frontend/tarpc/tarpc", default-features = false, features = ["server", "serde-transport", "serde-transport-json"] }
 async-trait = "0.1.61"
 futures = "0.3"
 async-stream = "0.3.3"
-ws_stream_tungstenite = { version = "0.9.0", features = ["tokio_io"] }
-async-tungstenite = { version = "0.18.0", features = ["tokio-native-tls"] }
-tokio-util = { version = "0.7.4", default-features = false, features = ["codec"] }
-tokio = { version = "1.24.1", default-features = false, features = ["macros", "net", "rt", "rt-multi-thread", "time"] }
-tokio-serde = "0.8.0"
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
+tonic = "0.8.3"
+prost = "0.11.6"
+anyhow = "1.0.69"
+tokio = { version = "1.25.0", features = ["rt-multi-thread"] }
+
+[build-dependencies]
+tonic-build = "0.8.4"
