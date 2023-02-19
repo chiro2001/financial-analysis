@@ -5,7 +5,7 @@ use http::header::HeaderName;
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
-use rpc::api::api_rpc_server::{ApiRpc, ApiRpcServer};
+use rpc::api::api_rpc_server::ApiRpc;
 use rpc::api::{LoginRegisterRequest, ReasonResp};
 use rpc::api::register_server::{Register, RegisterServer};
 use rpc::API_PORT;
@@ -52,6 +52,16 @@ async fn main() -> Result<()> {
     // let addr = format!("[::1]:{}", API_PORT).parse().unwrap();
     let addr = format!("0.0.0.0:{}", API_PORT).parse().unwrap();
     let api = ApiServer::default();
+    let check = |req: Request<()>| {
+        let token = "token";
+        info!("metadata: {:?}", req.metadata());
+        match req.metadata().get("authorization") {
+            Some(t) if token == t => Ok(req),
+            Some(t) => Err(Status::unauthenticated(format!("No valid token: {:?}", t.to_str()))),
+            _ => Err(Status::unauthenticated("No valid token")),
+        }
+    };
+    let svc = rpc::api::api_rpc_server::ApiRpcServer::with_interceptor(api, check);
     let register_service = RegisterService::default();
 
     println!("GreeterServer listening on {}", addr);
@@ -79,7 +89,7 @@ async fn main() -> Result<()> {
                 ),
         )
         .layer(GrpcWebLayer::new())
-        .add_service(ApiRpcServer::new(api))
+        .add_service(svc)
         .add_service(RegisterServer::new(register_service))
         .serve(addr)
         .await?;
