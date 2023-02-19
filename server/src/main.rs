@@ -5,7 +5,7 @@ use tonic::transport::Server;
 use tracing::info;
 use rpc::api::api_rpc_server::{ApiRpc, ApiRpcServer};
 use rpc::api::{LoginRegisterRequest, ReasonResp};
-use rpc::api::register_server::Register;
+use rpc::api::register_server::{Register, RegisterServer};
 use rpc::API_PORT;
 
 #[derive(Default)]
@@ -25,8 +25,11 @@ impl ApiRpc for ApiServer {
     }
 }
 
+#[derive(Default)]
+pub struct RegisterService {}
+
 #[tonic::async_trait]
-impl Register for ApiServer {
+impl Register for RegisterService {
     async fn register(&self, request: Request<LoginRegisterRequest>) -> std::result::Result<Response<ReasonResp>, Status> {
         let data = request.into_inner();
         info!("register: {:?}", data);
@@ -40,11 +43,13 @@ async fn main() -> Result<()> {
     // let addr = format!("[::1]:{}", API_PORT).parse().unwrap();
     let addr = format!("0.0.0.0:{}", API_PORT).parse().unwrap();
     let api = ApiServer::default();
+    let register_service = RegisterService::default();
 
     println!("GreeterServer listening on {}", addr);
 
     Server::builder()
         .add_service(ApiRpcServer::new(api))
+        .add_service(RegisterServer::new(register_service))
         .serve(addr)
         .await?;
 
