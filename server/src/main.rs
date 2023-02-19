@@ -9,6 +9,7 @@ use rpc::api::api_rpc_server::{ApiRpc, ApiRpcServer};
 use rpc::api::{LoginRegisterRequest, ReasonResp};
 use rpc::api::register_server::{Register, RegisterServer};
 use rpc::API_PORT;
+use tonic_web::GrpcWebLayer;
 
 #[derive(Default)]
 pub struct ApiServer {}
@@ -77,6 +78,7 @@ async fn main() -> Result<()> {
                         .collect::<Vec<HeaderName>>(),
                 ),
         )
+        .layer(GrpcWebLayer::new())
         .add_service(ApiRpcServer::new(api))
         .add_service(RegisterServer::new(register_service))
         .serve(addr)
