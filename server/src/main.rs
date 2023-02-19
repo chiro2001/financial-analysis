@@ -6,17 +6,21 @@ use tracing::info;
 use rpc::api::api_rpc_server::{ApiRpc, ApiRpcServer};
 use rpc::api::{LoginRegisterRequest, ReasonResp};
 use rpc::api::register_server::Register;
+use rpc::API_PORT;
 
 #[derive(Default)]
 pub struct ApiServer {}
 
 #[tonic::async_trait]
 impl ApiRpc for ApiServer {
-    async fn ping(&self, request: Request<()>) -> std::result::Result<Response<()>, Status> {
+    async fn ping(&self, _request: Request<()>) -> std::result::Result<Response<()>, Status> {
+        info!("ping");
         Ok(Response::new(()))
     }
 
     async fn login(&self, request: Request<LoginRegisterRequest>) -> std::result::Result<Response<ReasonResp>, Status> {
+        let data = request.into_inner();
+        info!("login: {:?}", data);
         Ok(Response::new(ReasonResp::default()))
     }
 }
@@ -24,6 +28,8 @@ impl ApiRpc for ApiServer {
 #[tonic::async_trait]
 impl Register for ApiServer {
     async fn register(&self, request: Request<LoginRegisterRequest>) -> std::result::Result<Response<ReasonResp>, Status> {
+        let data = request.into_inner();
+        info!("register: {:?}", data);
         Ok(Response::new(ReasonResp::default()))
     }
 }
@@ -31,14 +37,14 @@ impl Register for ApiServer {
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
-    // let addr = "[::1]:51411".parse().unwrap();
-    let addr = "0.0.0.0:51411".parse().unwrap();
-    let greeter = ApiServer::default();
+    // let addr = format!("[::1]:{}", API_PORT).parse().unwrap();
+    let addr = format!("0.0.0.0:{}", API_PORT).parse().unwrap();
+    let api = ApiServer::default();
 
     println!("GreeterServer listening on {}", addr);
 
     Server::builder()
-        .add_service(ApiRpcServer::new(greeter))
+        .add_service(ApiRpcServer::new(api))
         .serve(addr)
         .await?;
 
