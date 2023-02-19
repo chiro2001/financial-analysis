@@ -20,7 +20,9 @@ impl ApiRpc for ApiServer {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let addr = "[::1]:51411".parse().unwrap();
+    tracing_subscriber::fmt::init();
+    // let addr = "[::1]:51411".parse().unwrap();
+    let addr = "0.0.0.0:51411".parse().unwrap();
     let greeter = ApiServer::default();
 
     println!("GreeterServer listening on {}", addr);

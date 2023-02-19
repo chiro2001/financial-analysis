@@ -19,3 +19,7 @@ rpc = { path = "../financial-frontend/rpc" }
 
 [build-dependencies]
 tonic-build = "0.8.4"
+
+[[bin]]
+name = "test-client"
+path = "src/client.rs"
