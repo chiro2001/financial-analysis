@@ -4,17 +4,27 @@ use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
 use rpc::api::api_rpc_server::{ApiRpc, ApiRpcServer};
-use rpc::api::RegisterRequest;
+use rpc::api::{LoginRegisterRequest, ReasonResp};
+use rpc::api::register_server::Register;
 
 #[derive(Default)]
 pub struct ApiServer {}
 
 #[tonic::async_trait]
 impl ApiRpc for ApiServer {
-    async fn register(&self, request: Request<RegisterRequest>) -> Result<Response<()>, Status> {
-        let data = request.into_inner();
-        info!("req: {}, {}", data.username, data.password);
+    async fn ping(&self, request: Request<()>) -> std::result::Result<Response<()>, Status> {
         Ok(Response::new(()))
+    }
+
+    async fn login(&self, request: Request<LoginRegisterRequest>) -> std::result::Result<Response<ReasonResp>, Status> {
+        Ok(Response::new(ReasonResp::default()))
+    }
+}
+
+#[tonic::async_trait]
+impl Register for ApiServer {
+    async fn register(&self, request: Request<LoginRegisterRequest>) -> std::result::Result<Response<ReasonResp>, Status> {
+        Ok(Response::new(ReasonResp::default()))
     }
 }
 
