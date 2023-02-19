@@ -1,14 +1,10 @@
 use anyhow::Result;
 
-pub mod api {
-    tonic::include_proto!("financial_analysis");
-}
-
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
-use crate::api::api_rpc_server::{ApiRpc, ApiRpcServer};
-use crate::api::RegisterRequest;
+use rpc::api::api_rpc_server::{ApiRpc, ApiRpcServer};
+use rpc::api::RegisterRequest;
 
 #[derive(Default)]
 pub struct ApiServer {}

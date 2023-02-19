@@ -15,6 +15,7 @@ tonic = "0.8.3"
 prost = "0.11.6"
 anyhow = "1.0.69"
 tokio = { version = "1.25.0", features = ["rt-multi-thread"] }
+rpc = { path = "../financial-frontend/rpc" }
 
 [build-dependencies]
 tonic-build = "0.8.4"
