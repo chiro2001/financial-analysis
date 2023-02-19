@@ -12,10 +12,15 @@ async-stream = "0.3.3"
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
 tonic = "0.8.3"
+tonic-web = "0.5.0"
+http = "0.2.8"
 prost = "0.11.6"
 anyhow = "1.0.69"
 tokio = { version = "1.25.0", features = ["rt-multi-thread"] }
 rpc = { path = "../financial-frontend/rpc" }
+tower-http = { version = "0.3.5", default-features = false, features = [
+    "cors",
+] }
 
 [build-dependencies]
 tonic-build = "0.8.4"

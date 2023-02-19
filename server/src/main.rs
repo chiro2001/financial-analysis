@@ -1,5 +1,7 @@
+use std::time::Duration;
 use anyhow::Result;
-
+use tower_http::cors::{AllowOrigin, CorsLayer};
+use http::header::HeaderName;
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
@@ -37,6 +39,12 @@ impl Register for RegisterService {
     }
 }
 
+const DEFAULT_MAX_AGE: Duration = Duration::from_secs(24 * 60 * 60);
+const DEFAULT_EXPOSED_HEADERS: [&str; 3] =
+    ["grpc-status", "grpc-message", "grpc-status-details-bin"];
+const DEFAULT_ALLOW_HEADERS: [&str; 4] =
+    ["x-grpc-web", "content-type", "x-user-agent", "grpc-timeout"];
+
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
@@ -48,6 +56,27 @@ async fn main() -> Result<()> {
     println!("GreeterServer listening on {}", addr);
 
     Server::builder()
+        .accept_http1(true)
+        .layer(
+            CorsLayer::new()
+                .allow_origin(AllowOrigin::mirror_request())
+                .allow_credentials(true)
+                .max_age(DEFAULT_MAX_AGE)
+                .expose_headers(
+                    DEFAULT_EXPOSED_HEADERS
+                        .iter()
+                        .cloned()
+                        .map(HeaderName::from_static)
+                        .collect::<Vec<HeaderName>>(),
+                )
+                .allow_headers(
+                    DEFAULT_ALLOW_HEADERS
+                        .iter()
+                        .cloned()
+                        .map(HeaderName::from_static)
+                        .collect::<Vec<HeaderName>>(),
+                ),
+        )
         .add_service(ApiRpcServer::new(api))
         .add_service(RegisterServer::new(register_service))
         .serve(addr)
