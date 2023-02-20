@@ -6,7 +6,7 @@ use tonic::{Code, Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
 use rpc::api::api_rpc_server::ApiRpc;
-use rpc::api::{LoginRegisterRequest, LoginResp, PredictRequest, PredictResp, ReasonResp, StockListResp, StockResp, TradingHistoryItem, TradingHistoryRequest, TradingHistoryResp};
+use rpc::api::{LoginRegisterRequest, LoginResp, PredictRequest, PredictResp, ReasonResp, StockIssueRequest, StockIssueResp, StockListResp, StockResp, TradingHistoryItem, TradingHistoryRequest, TradingHistoryResp};
 use rpc::api::register_server::{Register, RegisterServer};
 use rpc::API_PORT;
 use tonic_web::GrpcWebLayer;
@@ -58,6 +58,56 @@ impl Into<TradingHistoryItem> for TradingHistoryItem2 {
             high: self.high,
             low: self.low,
             volume: self.volume,
+        }
+    }
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone)]
+pub struct StockIssueResp2 {
+    pub market: String,
+    pub consignee: String,
+    pub underwriting: String,
+    pub sponsor: String,
+    pub issue_price: String,
+    pub issue_mode: String,
+    pub issue_pe: String,
+    pub pre_capital: String,
+    pub capital: String,
+    pub issue_volume: String,
+    pub expected_fundraising: String,
+    pub fundraising: String,
+    pub issue_cost: String,
+    pub net_amount_raised: String,
+    pub underwriting_fee: String,
+    pub announcement_date: String,
+    pub launch_date: String,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct StockIssueRespWrapper {
+    pub stock_issue: Vec<StockIssueResp2>,
+}
+
+impl Into<StockIssueResp> for StockIssueResp2 {
+    fn into(self) -> StockIssueResp {
+        StockIssueResp {
+            market: self.market,
+            consignee: self.consignee,
+            underwriting: self.underwriting,
+            sponsor: self.sponsor,
+            issue_price: self.issue_price,
+            issue_mode: self.issue_mode,
+            issue_pe: self.issue_pe,
+            pre_capital: self.pre_capital,
+            capital: self.capital,
+            issue_volume: self.issue_volume,
+            expected_fundraising: self.expected_fundraising,
+            fundraising: self.fundraising,
+            issue_cost: self.issue_cost,
+            net_amount_raised: self.net_amount_raised,
+            underwriting_fee: self.underwriting_fee,
+            announcement_date: self.announcement_date,
+            launch_date: self.launch_date,
         }
     }
 }
@@ -140,6 +190,22 @@ impl ApiRpc for ApiServer {
             Err(Status::unknown(format!("Internal Error: {:?}", resp)))
         } else {
             Ok(Response::new(PredictResp { data: resp.data.result }))
+        }
+    }
+
+    async fn stock_issue(&self, request: Request<StockIssueRequest>) -> std::result::Result<Response<StockIssueResp>, Status> {
+        let data = request.into_inner();
+        let url = format!("{}/symbols/getStockIssue?a={}", JRPC_HTTP_PREFIX, data.symbol);
+        info!("requesting url: {}", url);
+        let resp = reqwest::get(url)
+            .await.map_err(|e| Status::new(Code::Aborted, format!("Network Error: {}", e)))?
+            .text().await.map_err(|e| Status::unknown(format!("Network Error: {}", e)))?
+            .replace("p/e", "pe");
+        let resp: JrpcResp<StockIssueRespWrapper> = serde_json::from_str(resp.as_str()).map_err(|e| Status::new(Code::Aborted, format!("Decode Error: {}", e)))?;
+        if resp.code != 200 || resp.data.stock_issue.is_empty() {
+            Err(Status::unknown(format!("Internal Error: {:?}", resp)))
+        } else {
+            Ok(Response::new(resp.data.stock_issue.first().unwrap().clone().into()))
         }
     }
 }
