@@ -2,14 +2,42 @@ use std::time::Duration;
 use anyhow::Result;
 use tower_http::cors::{AllowOrigin, CorsLayer};
 use http::header::HeaderName;
-use tonic::{Request, Response, Status};
+use tonic::{Code, Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
 use rpc::api::api_rpc_server::ApiRpc;
-use rpc::api::{LoginRegisterRequest, LoginResp, ReasonResp};
+use rpc::api::{LoginRegisterRequest, LoginResp, ReasonResp, StockListResp, StockResp};
 use rpc::api::register_server::{Register, RegisterServer};
 use rpc::API_PORT;
 use tonic_web::GrpcWebLayer;
+
+pub const JRPC_HTTP_PREFIX: &'static str = "http://127.0.0.1:8000/api/v1";
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct JrpcResp<T> {
+    pub code: usize,
+    pub message: String,
+    pub data: T,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct StockResp2 {
+    pub symbol: String,
+    pub code: String,
+    pub name: String,
+    pub _id: String,
+}
+
+impl Into<StockResp> for StockResp2 {
+    fn into(self) -> StockResp {
+        StockResp {
+            symbol: self.symbol,
+            code: self.code,
+            name: self.name,
+            id: self._id,
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct ApiServer {}
@@ -24,11 +52,23 @@ impl ApiRpc for ApiServer {
     async fn login(&self, request: Request<LoginRegisterRequest>) -> std::result::Result<Response<LoginResp>, Status> {
         let data = request.into_inner();
         info!("login: {:?}", data);
-        Ok(Response::new(LoginResp{
+        Ok(Response::new(LoginResp {
             err: false,
             token: "token".to_string(),
             reason: "".to_string(),
         }))
+    }
+
+    async fn stock_list(&self, _request: Request<()>) -> std::result::Result<Response<StockListResp>, Status> {
+        // std::thread::sleep(std::time::Duration::from_secs(3));
+        let resp = reqwest::get(format!("{}/stockList", JRPC_HTTP_PREFIX))
+            .await.map_err(|e| Status::new(Code::Aborted, format!("Network Error: {}", e)))?
+            .json::<JrpcResp<Vec<StockResp2>>>()
+            .await.map_err(|e| Status::new(Code::Aborted, format!("Decode Error: {}", e)))?;
+        if resp.code != 200 {
+            return Err(Status::unknown(format!("Internal Error: {:?}", resp)));
+        }
+        Ok(Response::new(StockListResp { data: resp.data.into_iter().map(|x| x.into()).collect() }))
     }
 }
 
