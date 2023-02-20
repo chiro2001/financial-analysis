@@ -6,7 +6,7 @@ use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
 use rpc::api::api_rpc_server::ApiRpc;
-use rpc::api::{LoginRegisterRequest, ReasonResp};
+use rpc::api::{LoginRegisterRequest, LoginResp, ReasonResp};
 use rpc::api::register_server::{Register, RegisterServer};
 use rpc::API_PORT;
 use tonic_web::GrpcWebLayer;
@@ -21,10 +21,14 @@ impl ApiRpc for ApiServer {
         Ok(Response::new(()))
     }
 
-    async fn login(&self, request: Request<LoginRegisterRequest>) -> std::result::Result<Response<ReasonResp>, Status> {
+    async fn login(&self, request: Request<LoginRegisterRequest>) -> std::result::Result<Response<LoginResp>, Status> {
         let data = request.into_inner();
         info!("login: {:?}", data);
-        Ok(Response::new(ReasonResp::default()))
+        Ok(Response::new(LoginResp{
+            err: false,
+            token: "token".to_string(),
+            reason: "".to_string(),
+        }))
     }
 }
 
