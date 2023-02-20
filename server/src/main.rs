@@ -6,7 +6,7 @@ use tonic::{Code, Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
 use rpc::api::api_rpc_server::ApiRpc;
-use rpc::api::{LoginRegisterRequest, LoginResp, ReasonResp, StockListResp, StockResp, TradingHistoryItem, TradingHistoryRequest, TradingHistoryResp};
+use rpc::api::{LoginRegisterRequest, LoginResp, PredictRequest, PredictResp, ReasonResp, StockListResp, StockResp, TradingHistoryItem, TradingHistoryRequest, TradingHistoryResp};
 use rpc::api::register_server::{Register, RegisterServer};
 use rpc::API_PORT;
 use tonic_web::GrpcWebLayer;
@@ -62,6 +62,17 @@ impl Into<TradingHistoryItem> for TradingHistoryItem2 {
     }
 }
 
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct PredictResp2 {
+    pub result: Vec<f32>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct PredictRequest2 {
+    pub data: Vec<f32>,
+    pub length: u32,
+}
+
 #[derive(Default)]
 pub struct ApiServer {}
 
@@ -113,6 +124,22 @@ impl ApiRpc for ApiServer {
             Err(Status::unknown(format!("Internal Error: {:?}", resp)))
         } else {
             Ok(Response::new(TradingHistoryResp { data: resp.data.into_iter().map(|x| x.into()).collect() }))
+        }
+    }
+
+    async fn predict_data(&self, request: Request<PredictRequest>) -> std::result::Result<Response<PredictResp>, Status> {
+        let req = request.into_inner();
+        let url = format!("{}/data_predict", JRPC_HTTP_PREFIX);
+        let client = reqwest::Client::new();
+        let resp = client.post(url)
+            .json(&PredictRequest2 { data: req.data, length: req.length })
+            .send().await.map_err(|e| Status::unknown(format!("Internal Error: {}", e)))?
+            .json::<JrpcResp<PredictResp2>>()
+            .await.map_err(|e| Status::new(Code::Aborted, format!("Decode Error: {}", e)))?;
+        if resp.code != 200 {
+            Err(Status::unknown(format!("Internal Error: {:?}", resp)))
+        } else {
+            Ok(Response::new(PredictResp { data: resp.data.result }))
         }
     }
 }
