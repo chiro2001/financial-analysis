@@ -6,7 +6,7 @@ use tonic::{Code, Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
 use rpc::api::api_rpc_server::ApiRpc;
-use rpc::api::{LoginRegisterRequest, LoginResp, ReasonResp, StockListResp, StockResp};
+use rpc::api::{LoginRegisterRequest, LoginResp, ReasonResp, StockListResp, StockResp, TradingHistoryItem, TradingHistoryRequest, TradingHistoryResp};
 use rpc::api::register_server::{Register, RegisterServer};
 use rpc::API_PORT;
 use tonic_web::GrpcWebLayer;
@@ -35,6 +35,29 @@ impl Into<StockResp> for StockResp2 {
             code: self.code,
             name: self.name,
             id: self._id,
+        }
+    }
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct TradingHistoryItem2 {
+    pub date: String,
+    pub open: String,
+    pub close: String,
+    pub high: String,
+    pub low: String,
+    pub volume: String,
+}
+
+impl Into<TradingHistoryItem> for TradingHistoryItem2 {
+    fn into(self) -> TradingHistoryItem {
+        TradingHistoryItem {
+            date: self.date,
+            open: self.open,
+            close: self.close,
+            high: self.high,
+            low: self.low,
+            volume: self.volume,
         }
     }
 }
@@ -69,6 +92,28 @@ impl ApiRpc for ApiServer {
             return Err(Status::unknown(format!("Internal Error: {:?}", resp)));
         }
         Ok(Response::new(StockListResp { data: resp.data.into_iter().map(|x| x.into()).collect() }))
+    }
+
+    async fn trading_history(&self, request: Request<TradingHistoryRequest>) -> std::result::Result<Response<TradingHistoryResp>, Status> {
+        let data = request.into_inner();
+        let typ = match data.typ {
+            /*TradingHistoryType::Daily*/ 0 => "Daily",
+            /*TradingHistoryType::Month*/ 1 => "Month",
+            /*TradingHistoryType::Week*/ 2 => "Week",
+            _ => "Error"
+        };
+        let function = format!("get{}His", typ);
+        let url = format!("{}/trading/{}?a={}", JRPC_HTTP_PREFIX, function, data.symbol);
+        info!("requesting url: {}", url);
+        let resp = reqwest::get(url)
+            .await.map_err(|e| Status::new(Code::Aborted, format!("Network Error: {}", e)))?
+            .json::<JrpcResp<Vec<TradingHistoryItem2>>>()
+            .await.map_err(|e| Status::new(Code::Aborted, format!("Decode Error: {}", e)))?;
+        if resp.code != 200 {
+            Err(Status::unknown(format!("Internal Error: {:?}", resp)))
+        } else {
+            Ok(Response::new(TradingHistoryResp { data: resp.data.into_iter().map(|x| x.into()).collect() }))
+        }
     }
 }
 
