@@ -159,8 +159,8 @@ impl ApiRpc for ApiServer {
         let data = request.into_inner();
         let typ = match data.typ {
             /*TradingHistoryType::Daily*/ 0 => "Daily",
-            /*TradingHistoryType::Month*/ 1 => "Month",
-            /*TradingHistoryType::Week*/ 2 => "Week",
+            /*TradingHistoryType::Week*/ 1 => "Week",
+            /*TradingHistoryType::Month*/ 2 => "Month",
             _ => "Error"
         };
         let function = format!("get{}His", typ);
