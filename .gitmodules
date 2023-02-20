@@ -4,3 +4,6 @@
 [submodule "financial-frontend"]
 	path = financial-frontend
 	url = https://github.com/chiro2001/financial-frontend
+[submodule "simple-lstm-server"]
+	path = simple-lstm-server
+	url = https://github.com/chiro2001/simple-lstm-server
