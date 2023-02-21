@@ -2,23 +2,12 @@ FROM mongo:latest
 
 WORKDIR /work/
 
-# RUN apt update && apt install -y nodejs python3
-# RUN apt install -y python3-pip
-
-RUN apt update && apt install -y nodejs
-RUN apt install -y wget curl
+RUN apt update && apt install -y wget curl
 
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 RUN sh Miniconda3-latest-Linux-x86_64.sh -b -p /work/conda/
 RUN /work/conda/bin/conda create -n lstm python=3.6
-# RUN HOME=/root /work/conda/bin/conda init bash
-# RUN cat /root/.bashrc
-# RUN HOME=/root /work/conda/bin/conda activate lstm
-# RUN find /work/conda -name "python"
-# RUN /work/conda/envs/lstm/bin/python --version
-# RUN cd /work/simple-lstm-server && /work/conda/envs/lstm/bin/python server.py
 ENV PYTHON=/work/conda/envs/lstm/bin/python
-# RUN $PYTHON -m pip
 
 COPY ./simple-lstm-server/requirements.txt /work/
 
@@ -27,9 +16,7 @@ RUN $PYTHON -m pip install ./tensorflow-2.4.0-cp36-cp36m-manylinux2010_x86_64.wh
 
 RUN $PYTHON -m pip install -r requirements.txt
 
-# RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup.sh
-# RUN sh rustup.sh -y
-
+COPY mongod.conf /work/
 COPY docker_start.sh /work/
 COPY financial-frontend/dist/ /work/dist/
 COPY server/target/release/server /work/
