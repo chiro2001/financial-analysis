@@ -30,19 +30,19 @@ RUN $PYTHON -m pip install -r requirements.txt
 # RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup.sh
 # RUN sh rustup.sh -y
 
-COPY financial-frontend/dist /work/
-RUN cd dist && $PYTHON -m http.server 80 &
-# COPY . /work/
-# RUN fdsalkjfasl
-
-# RUN cd dipiper-server && npm run dev
-RUN cd dipiper-server && node run.js &
-# RUN cd financial-frontend/dist && python3 -m http.server 80 &
-# RUN cd server && cargo build --release
-RUN cd simple-lstm-server && $PYTHON server.py &
-# RUN cd server && cargo run --release &
-
+COPY docker_start.sh /work/
+COPY financial-frontend/dist/ /work/dist/
+COPY server/target/release/server /work/
+COPY dipiper-server/ /work/dipiper-server/
+COPY simple-lstm-server/ /work/simple-lstm-server
 EXPOSE 80 27017 51411 9090 8000
 
-COPY server/target/release/server /work/
-CMD [ "./server" ]
+RUN ls -lahi /work/
+RUN mkdir /work/nodejs
+RUN wget https://nodejs.org/download/release/v16.15.1/node-v16.15.1-linux-x64.tar.gz
+RUN tar xzf node-v16.15.1-linux-x64.tar.gz -C /work/nodejs
+ENV NODE=/work/nodejs/node-v16.15.1-linux-x64/bin/node
+RUN ls -lahi /work/nodejs/node-v16.15.1-linux-x64/
+RUN $NODE --version
+
+CMD [ "sh", "/work/docker_start.sh" ]
