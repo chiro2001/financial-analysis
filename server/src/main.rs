@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use std::time::Duration;
 use anyhow::Result;
 use tower_http::cors::{AllowOrigin, CorsLayer};
@@ -6,7 +8,7 @@ use tonic::{Code, Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
 use rpc::api::api_rpc_server::ApiRpc;
-use rpc::api::{LoginRegisterRequest, LoginResp, PredictRequest, PredictResp, ReasonResp, StockIssueRequest, StockIssueResp, StockListResp, StockResp, TradingHistoryItem, TradingHistoryRequest, TradingHistoryResp};
+use rpc::api::{CashFlow, DebtDecapitalStructure, GuideLineRequest, GuideLineResp, LoginRegisterRequest, LoginResp, OperationAbility, PredictRequest, PredictResp, Profitability, ReasonResp, ShareIndex, StockIssueRequest, StockIssueResp, StockListResp, StockResp, TradingHistoryItem, TradingHistoryRequest, TradingHistoryResp};
 use rpc::api::register_server::{Register, RegisterServer};
 use rpc::API_PORT;
 use tonic_web::GrpcWebLayer;
@@ -112,6 +114,184 @@ impl Into<StockIssueResp> for StockIssueResp2 {
     }
 }
 
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, Default)]
+pub struct GuideLineResp2 {
+    pub share_index: Vec<ShareIndex2>,
+    pub profitability: Vec<Profitability2>,
+    pub operation_ability: Vec<OperationAbility2>,
+    pub debt_decapital_structure: Vec<DebtDecapitalStructure2>,
+    pub cash_flow: Vec<CashFlow2>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, Default)]
+pub struct ShareIndex2 {
+    pub date: String,
+    pub Diluted_EPS: String,
+    pub EPSWA: String,
+    pub AEPS: String,
+    pub EPS_NGOL: String,
+    pub BPS: String,
+    pub BPS_Adjusted: String,
+    pub OCFPS: String,
+    pub CRPS: String,
+    pub UDPPS: String,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, Default)]
+pub struct Profitability2 {
+    pub Date: String,
+    pub OROA: String,
+    pub OPE: String,
+    pub PROA: String,
+    pub ROPTC: String,
+    pub OPR: String,
+    pub COGSTS: String,
+    pub PMOS: String,
+    pub DOE: String,
+    pub ROC: String,
+    pub ROA: String,
+    pub SGPR: String,
+    pub POTE: String,
+    pub NMP: String,
+    pub POMP: String,
+    pub RR: String,
+    pub ROI: String,
+    pub GP: String,
+    pub ROE: String,
+    pub ROEWA: String,
+    pub NPAD: String,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, Default)]
+pub struct OperationAbility2 {
+    pub Date: String,
+    pub ART: String,
+    pub DSO: String,
+    pub DSI: String,
+    pub RST: String,
+    pub TFA: String,
+    pub TATO: String,
+    pub TATD: String,
+    pub CATA: String,
+    pub DCAT: String,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, Default)]
+pub struct DebtDecapitalStructure2 {
+    pub Date: String,
+    pub AR: String,
+    pub QR: String,
+    pub CR: String,
+    pub ICR: String,
+    pub LDWCR: String,
+    pub EAR: String,
+    pub LDR: String,
+    pub REFA: String,
+    pub DER: String,
+    pub RLALF: String,
+    pub MCR: String,
+    pub FANWR: String,
+    pub CIR: String,
+    pub ER: String,
+    pub LVR: String,
+    pub POFA: String,
+    pub LEV: String,
+    pub ASSET: String,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, Default)]
+pub struct CashFlow2 {
+    pub Date: String,
+    pub NOCFTSR: String,
+    pub ROOCFOA: String,
+    pub NOCFTNP: String,
+    pub NOCFTDR: String,
+    pub CFR: String,
+}
+
+impl Into<GuideLineResp> for GuideLineResp2 {
+    fn into(self) -> GuideLineResp {
+        GuideLineResp {
+            share_index: self.share_index.into_iter().map(|x| ShareIndex {
+                date: x.date,
+                diluted_eps: x.Diluted_EPS,
+                epswa: x.EPSWA,
+                aeps: x.AEPS,
+                eps_ngol: x.EPS_NGOL,
+                bps: x.BPS,
+                bps_adjusted: x.BPS_Adjusted,
+                ocfps: x.OCFPS,
+                crps: x.CRPS,
+                udpps: x.UDPPS,
+            }).collect(),
+            profitability: self.profitability.into_iter().map(|x| Profitability {
+                date: x.Date,
+                oroa: x.OROA,
+                ope: x.OPE,
+                proa: x.PROA,
+                roptc: x.ROPTC,
+                opr: x.OPR,
+                cogsts: x.COGSTS,
+                pmos: x.PMOS,
+                doe: x.DOE,
+                roc: x.ROC,
+                roa: x.ROA,
+                sgpr: x.SGPR,
+                pote: x.POTE,
+                nmp: x.NMP,
+                pomp: x.POMP,
+                rr: x.RR,
+                roi: x.ROI,
+                gp: x.GP,
+                roe: x.ROE,
+                roewa: x.ROEWA,
+                npad: x.NPAD,
+            }).collect(),
+            operation_ability: self.operation_ability.into_iter().map(|x| OperationAbility {
+                date: x.Date,
+                art: x.ART,
+                dso: x.DSO,
+                dsi: x.DSI,
+                rst: x.RST,
+                tfa: x.TFA,
+                tato: x.TATO,
+                tatd: x.TATD,
+                cata: x.CATA,
+                dcat: x.DCAT,
+            }).collect(),
+            debt_decapital_structure: self.debt_decapital_structure.into_iter().map(|x| DebtDecapitalStructure {
+                date: x.Date,
+                ar: x.AR,
+                qr: x.QR,
+                cr: x.CR,
+                icr: x.ICR,
+                ldwcr: x.LDWCR,
+                ear: x.EAR,
+                ldr: x.LDR,
+                refa: x.REFA,
+                der: x.DER,
+                rlalf: x.RLALF,
+                mcr: x.MCR,
+                fanwr: x.FANWR,
+                cir: x.CIR,
+                er: x.ER,
+                lvr: x.LVR,
+                pofa: x.POFA,
+                lev: x.LEV,
+                asset: x.ASSET,
+            }).collect(),
+            cash_flow: self.cash_flow.into_iter().map(|x| CashFlow {
+                date: x.Date,
+                nocftsr: x.NOCFTSR,
+                roocfoa: x.ROOCFOA,
+                nocftnp: x.NOCFTNP,
+                nocftdr: x.NOCFTDR,
+                cfr: x.CFR,
+            }).collect(),
+        }
+    }
+}
+
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct PredictResp2 {
     pub result: Vec<f32>,
@@ -206,6 +386,23 @@ impl ApiRpc for ApiServer {
             Err(Status::unknown(format!("Internal Error: {:?}", resp)))
         } else {
             Ok(Response::new(resp.data.stock_issue.first().unwrap().clone().into()))
+        }
+    }
+
+    async fn guide_line(&self, request: Request<GuideLineRequest>) -> std::result::Result<Response<GuideLineResp>, Status> {
+        let data = request.into_inner();
+        let url = format!("{}/finance/getGuideLine?a={}&b={}", JRPC_HTTP_PREFIX, data.code, data.year);
+        info!("requesting url: {}", url);
+        let resp = reqwest::get(url)
+            .await.map_err(|e| Status::new(Code::Aborted, format!("Network Error: {}", e)))?
+            .json::<JrpcResp<GuideLineResp2>>()
+            .await.map_err(|e| Status::new(Code::Aborted, format!("Decode Error: {}", e)))?;
+        if resp.code != 200 {
+            Err(Status::unknown(format!("Internal Error: {:?}", resp)))
+        } else {
+            let data = resp.data.into();
+            info!("guide line done {:?}", data);
+            Ok(Response::new(data))
         }
     }
 }
