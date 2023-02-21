@@ -16,14 +16,14 @@ RUN $PYTHON -m pip install ./tensorflow-2.4.0-cp36-cp36m-manylinux2010_x86_64.wh
 
 RUN $PYTHON -m pip install -r requirements.txt
 
-RUN mkdir /work/nodejs
-RUN wget https://nodejs.org/download/release/v16.15.1/node-v16.15.1-linux-x64.tar.gz
-RUN tar xzf node-v16.15.1-linux-x64.tar.gz -C /work/nodejs
-ENV NODE=/work/nodejs/node-v16.15.1-linux-x64/bin/node
+# RUN mkdir /work/nodejs
+# RUN wget https://nodejs.org/download/release/v16.15.1/node-v16.15.1-linux-x64.tar.gz
+# RUN tar xzf node-v16.15.1-linux-x64.tar.gz -C /work/nodejs
+# ENV NODE=/work/nodejs/node-v16.15.1-linux-x64/bin/node
 
 COPY financial-frontend/dist/ /work/dist/
 COPY server/target/release/server /work/
-COPY dipiper-server/ /work/dipiper-server/
+COPY dipiper-server/dist/dipiper-server /work/
 COPY simple-lstm-server/ /work/simple-lstm-server
 COPY docker_start.sh /work/
 EXPOSE 80 27017 51411 9090 8000
