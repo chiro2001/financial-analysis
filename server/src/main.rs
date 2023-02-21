@@ -8,7 +8,7 @@ use tonic::{Code, Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
 use rpc::api::api_rpc_server::ApiRpc;
-use rpc::api::{CashFlow, DebtDecapitalStructure, GuideLineRequest, GuideLineResp, LoginRegisterRequest, LoginResp, OperationAbility, PredictRequest, PredictResp, Profitability, ReasonResp, ShareIndex, StockIssueRequest, StockIssueResp, StockListResp, StockResp, TradingHistoryItem, TradingHistoryRequest, TradingHistoryResp};
+use rpc::api::{CashFlow, DebtDecapitalStructure, GuideLineRequest, GuideLineResp, IncomeAnalysisRequest, IncomeAnalysisResp, LoginRegisterRequest, LoginResp, OperationAbility, PredictRequest, PredictResp, Profitability, ReasonResp, ShareIndex, StockIssueRequest, StockIssueResp, StockListResp, StockResp, TradingHistoryItem, TradingHistoryRequest, TradingHistoryResp};
 use rpc::api::register_server::{Register, RegisterServer};
 use rpc::API_PORT;
 use tonic_web::GrpcWebLayer;
@@ -303,6 +303,18 @@ pub struct PredictRequest2 {
     pub length: u32,
 }
 
+#[derive(Debug, serde::Deserialize, serde::Serialize, Clone, Default)]
+pub struct IncomeAnalysisResp2 {
+    pub incomes: Vec<f32>,
+    pub ave: f32,
+}
+
+impl Into<IncomeAnalysisResp> for IncomeAnalysisResp2 {
+    fn into(self) -> IncomeAnalysisResp {
+        IncomeAnalysisResp { incomes: self.incomes, ave: self.ave }
+    }
+}
+
 #[derive(Default)]
 pub struct ApiServer {}
 
@@ -403,6 +415,21 @@ impl ApiRpc for ApiServer {
             let data = resp.data.into();
             info!("guide line done {:?}", data);
             Ok(Response::new(data))
+        }
+    }
+
+    async fn income_analysis(&self, request: Request<IncomeAnalysisRequest>) -> std::result::Result<Response<IncomeAnalysisResp>, Status> {
+        let data = request.into_inner();
+        let url = format!("{}/income_analysis/{}", JRPC_HTTP_PREFIX, data.code);
+        info!("requesting url: {}", url);
+        let resp = reqwest::get(url)
+            .await.map_err(|e| Status::new(Code::Aborted, format!("Network Error: {}", e)))?
+            .json::<JrpcResp<IncomeAnalysisResp2>>()
+            .await.map_err(|e| Status::new(Code::Aborted, format!("Decode Error: {}", e)))?;
+        if resp.code != 200 {
+            Err(Status::unknown(format!("Internal Error: {:?}", resp)))
+        } else {
+            Ok(Response::new(resp.data.into()))
         }
     }
 }
