@@ -1,1 +1,3 @@
-target/
+# server/target/
+financial-frontend/target/
+financial-frontend/tonic-web-wasm-client/target/
