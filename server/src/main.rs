@@ -328,11 +328,19 @@ impl ApiRpc for ApiServer {
     async fn login(&self, request: Request<LoginRegisterRequest>) -> std::result::Result<Response<LoginResp>, Status> {
         let data = request.into_inner();
         info!("login: {:?}", data);
-        Ok(Response::new(LoginResp {
-            err: false,
-            token: "token".to_string(),
-            reason: "".to_string(),
-        }))
+        if data.username == "test" && data.password == "test" {
+            Ok(Response::new(LoginResp {
+                err: false,
+                token: "token".to_string(),
+                reason: "".to_string(),
+            }))
+        } else {
+            Ok(Response::new(LoginResp {
+                err: true,
+                token: "".to_string(),
+                reason: "用户名或密码错误".to_string(),
+            }))
+        }
     }
 
     async fn stock_list(&self, _request: Request<()>) -> std::result::Result<Response<StockListResp>, Status> {
