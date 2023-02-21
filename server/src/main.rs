@@ -413,7 +413,7 @@ impl ApiRpc for ApiServer {
             Err(Status::unknown(format!("Internal Error: {:?}", resp)))
         } else {
             let data = resp.data.into();
-            info!("guide line done {:?}", data);
+            // info!("guide line done {:?}", data);
             Ok(Response::new(data))
         }
     }
