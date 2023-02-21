@@ -6,7 +6,7 @@ use tracing::info;
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
-    let addr = format!("http://127.0.0.1:{}", API_PORT);
+    let addr = format!("http://0.0.0.0:{}", API_PORT);
 
     let mut client = rpc::api::api_rpc_client::ApiRpcClient::connect(addr.clone()).await?;
     info!("got client: {:?}", client);
