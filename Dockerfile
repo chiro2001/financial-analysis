@@ -16,20 +16,16 @@ RUN $PYTHON -m pip install ./tensorflow-2.4.0-cp36-cp36m-manylinux2010_x86_64.wh
 
 RUN $PYTHON -m pip install -r requirements.txt
 
-COPY mongod.conf /work/
-COPY docker_start.sh /work/
-COPY financial-frontend/dist/ /work/dist/
-COPY server/target/release/server /work/
-COPY dipiper-server/ /work/dipiper-server/
-COPY simple-lstm-server/ /work/simple-lstm-server
-EXPOSE 80 27017 51411 9090 8000
-
-RUN ls -lahi /work/
 RUN mkdir /work/nodejs
 RUN wget https://nodejs.org/download/release/v16.15.1/node-v16.15.1-linux-x64.tar.gz
 RUN tar xzf node-v16.15.1-linux-x64.tar.gz -C /work/nodejs
 ENV NODE=/work/nodejs/node-v16.15.1-linux-x64/bin/node
-RUN ls -lahi /work/nodejs/node-v16.15.1-linux-x64/
-RUN $NODE --version
+
+COPY financial-frontend/dist/ /work/dist/
+COPY server/target/release/server /work/
+COPY dipiper-server/ /work/dipiper-server/
+COPY simple-lstm-server/ /work/simple-lstm-server
+COPY docker_start.sh /work/
+EXPOSE 80 27017 51411 9090 8000
 
 CMD [ "sh", "/work/docker_start.sh" ]
