@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+mod hybrid;
+
 use std::time::Duration;
 use anyhow::Result;
 use tower_http::cors::{AllowOrigin, CorsLayer};
@@ -478,9 +480,12 @@ async fn main() -> Result<()> {
     let svc = rpc::api::api_rpc_server::ApiRpcServer::with_interceptor(api, check);
     let register_service = RegisterService::default();
 
-    println!("GreeterServer listening on {}", addr);
+    println!("Financial Analysis Server listening on {}", addr);
+    let static_path = std::env::var("FRONTEND_STATIC_PATH").unwrap_or("../financial-frontend/dist".to_string());
+    let static_files = tower_http::services::ServeDir::new(&static_path);
+    let static_file_service = tower::make::Shared::new(static_files);
 
-    Server::builder()
+    let grpc_service = Server::builder()
         .accept_http1(true)
         .layer(
             CorsLayer::new()
@@ -502,11 +507,27 @@ async fn main() -> Result<()> {
                         .collect::<Vec<HeaderName>>(),
                 ),
         )
+        // .layer(tonic::service::interceptor(move |req: Request<()>| {
+        //     let meta = req.metadata();
+        //     info!("meta: {meta:?}");
+        //     if let Some(accept) = meta.get("accept") {
+        //         let accept = accept.to_str().unwrap_or("");
+        //         if !accept.contains("application/grpc") {
+        //             // return static_files.call(req.into_http())
+        //         }
+        //     }
+        //     Ok(req)
+        // }))
         .layer(GrpcWebLayer::new())
         .add_service(svc)
         .add_service(RegisterServer::new(register_service))
-        .serve(addr)
-        .await?;
+        .into_service();
 
+    let hybrid_make_service = hybrid::hybrid(static_file_service, grpc_service);
+
+    let server = hyper::Server::bind(&addr).serve(hybrid_make_service);
+    if let Err(e) = server.await {
+        eprintln!("server error: {}", e);
+    }
     Ok(())
 }

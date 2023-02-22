@@ -19,11 +19,15 @@ anyhow = "1.0.69"
 tokio = { version = "1.25.0", features = ["rt-multi-thread"] }
 rpc = { path = "../financial-frontend/rpc" }
 tower-http = { version = "0.3.5", default-features = false, features = [
-    "cors",
+    "cors", "fs"
 ] }
 reqwest = { version = "0.11", features = ["json"] }
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.93"
+tower = "0.4.13"
+axum = "0.6.7"
+hyper = "0.14.24"
+pin-project = "1.0.12"
 
 [build-dependencies]
 tonic-build = "0.8.4"
