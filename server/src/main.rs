@@ -465,7 +465,6 @@ const DEFAULT_ALLOW_HEADERS: [&str; 5] =
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
-    // let addr = format!("[::1]:{}", API_PORT).parse().unwrap();
     let addr = format!("0.0.0.0:{}", API_PORT).parse().unwrap();
     let api = ApiServer::default();
     let check = |req: Request<()>| {
@@ -507,17 +506,6 @@ async fn main() -> Result<()> {
                         .collect::<Vec<HeaderName>>(),
                 ),
         )
-        // .layer(tonic::service::interceptor(move |req: Request<()>| {
-        //     let meta = req.metadata();
-        //     info!("meta: {meta:?}");
-        //     if let Some(accept) = meta.get("accept") {
-        //         let accept = accept.to_str().unwrap_or("");
-        //         if !accept.contains("application/grpc") {
-        //             // return static_files.call(req.into_http())
-        //         }
-        //     }
-        //     Ok(req)
-        // }))
         .layer(GrpcWebLayer::new())
         .add_service(svc)
         .add_service(RegisterServer::new(register_service))
