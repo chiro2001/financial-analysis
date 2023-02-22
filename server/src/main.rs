@@ -18,8 +18,6 @@ use rpc::api::register_server::{Register, RegisterServer};
 use rpc::API_PORT;
 use tonic_web::GrpcWebLayer;
 
-pub const JRPC_HTTP_PREFIX: &'static str = "http://127.0.0.1:8000/api/v1";
-
 lazy_static! {
     static ref USERS: Mutex<HashMap<String, String>> = {
         let mut m = HashMap::new();
@@ -328,8 +326,21 @@ impl Into<IncomeAnalysisResp> for IncomeAnalysisResp2 {
     }
 }
 
-#[derive(Default)]
-pub struct ApiServer {}
+pub struct ApiServer {
+    pub api: String,
+}
+
+impl Default for ApiServer {
+    fn default() -> Self {
+        Self { api: "http://127.0.0.1:8000/api/v1".to_string() }
+    }
+}
+
+impl ApiServer {
+    pub fn new(api: &str) -> Self {
+        Self { api: api.to_string() }
+    }
+}
 
 #[tonic::async_trait]
 impl ApiRpc for ApiServer {
@@ -366,7 +377,7 @@ impl ApiRpc for ApiServer {
 
     async fn stock_list(&self, _request: Request<()>) -> std::result::Result<Response<StockListResp>, Status> {
         // std::thread::sleep(std::time::Duration::from_secs(3));
-        let resp = reqwest::get(format!("{}/stockList", JRPC_HTTP_PREFIX))
+        let resp = reqwest::get(format!("{}/stockList", self.api))
             .await.map_err(|e| Status::new(Code::Aborted, format!("Network Error: {}", e)))?
             .json::<JrpcResp<Vec<StockResp2>>>()
             .await.map_err(|e| Status::new(Code::Aborted, format!("Decode Error: {}", e)))?;
@@ -385,7 +396,7 @@ impl ApiRpc for ApiServer {
             _ => "Error"
         };
         let function = format!("get{}His", typ);
-        let url = format!("{}/trading/{}?a={}", JRPC_HTTP_PREFIX, function, data.symbol);
+        let url = format!("{}/trading/{}?a={}", self.api, function, data.symbol);
         info!("requesting url: {}", url);
         let resp = reqwest::get(url)
             .await.map_err(|e| Status::new(Code::Aborted, format!("Network Error: {}", e)))?
@@ -400,7 +411,7 @@ impl ApiRpc for ApiServer {
 
     async fn predict_data(&self, request: Request<PredictRequest>) -> std::result::Result<Response<PredictResp>, Status> {
         let req = request.into_inner();
-        let url = format!("{}/data_predict", JRPC_HTTP_PREFIX);
+        let url = format!("{}/data_predict", self.api);
         let client = reqwest::Client::new();
         let resp = client.post(url)
             .json(&PredictRequest2 { data: req.data, length: req.length })
@@ -416,7 +427,7 @@ impl ApiRpc for ApiServer {
 
     async fn stock_issue(&self, request: Request<StockIssueRequest>) -> std::result::Result<Response<StockIssueResp>, Status> {
         let data = request.into_inner();
-        let url = format!("{}/symbols/getStockIssue?a={}", JRPC_HTTP_PREFIX, data.symbol);
+        let url = format!("{}/symbols/getStockIssue?a={}", self.api, data.symbol);
         info!("requesting url: {}", url);
         let resp = reqwest::get(url)
             .await.map_err(|e| Status::new(Code::Aborted, format!("Network Error: {}", e)))?
@@ -432,7 +443,7 @@ impl ApiRpc for ApiServer {
 
     async fn guide_line(&self, request: Request<GuideLineRequest>) -> std::result::Result<Response<GuideLineResp>, Status> {
         let data = request.into_inner();
-        let url = format!("{}/finance/getGuideLine?a={}&b={}", JRPC_HTTP_PREFIX, data.code, data.year);
+        let url = format!("{}/finance/getGuideLine?a={}&b={}", self.api, data.code, data.year);
         info!("requesting url: {}", url);
         let resp = reqwest::get(url)
             .await.map_err(|e| Status::new(Code::Aborted, format!("Network Error: {}", e)))?
@@ -449,7 +460,7 @@ impl ApiRpc for ApiServer {
 
     async fn income_analysis(&self, request: Request<IncomeAnalysisRequest>) -> std::result::Result<Response<IncomeAnalysisResp>, Status> {
         let data = request.into_inner();
-        let url = format!("{}/income_analysis/{}", JRPC_HTTP_PREFIX, data.code);
+        let url = format!("{}/income_analysis/{}", self.api, data.code);
         info!("requesting url: {}", url);
         let resp = reqwest::get(url)
             .await.map_err(|e| Status::new(Code::Aborted, format!("Network Error: {}", e)))?
@@ -487,7 +498,8 @@ const DEFAULT_ALLOW_HEADERS: [&str; 5] =
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     let addr = format!("0.0.0.0:{}", API_PORT).parse().unwrap();
-    let api = ApiServer::default();
+    let api_prefix = std::env::var("JRPC_HTTP_PREFIX").unwrap_or(ApiServer::default().api);
+    let api = ApiServer::new(api_prefix.as_str());
     let check = |req: Request<()>| {
         let token = "token";
         info!("metadata: {:?}", req.metadata());
