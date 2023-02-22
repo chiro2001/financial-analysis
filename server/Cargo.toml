@@ -28,6 +28,7 @@ tower = "0.4.13"
 axum = "0.6.7"
 hyper = "0.14.24"
 pin-project = "1.0.12"
+lazy_static = "1.4.0"
 
 [build-dependencies]
 tonic-build = "0.8.4"

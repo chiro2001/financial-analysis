@@ -1,16 +1,20 @@
-FROM mongo:latest
+FROM node:18
 
 WORKDIR /app/
 
 RUN apt-get update \
     && apt-get install -y wget gnupg sudo vim nano
 
-RUN mkdir -p /app/nodejs
-RUN wget https://nodejs.org/download/release/v18.14.2/node-v18.14.2-linux-x64.tar.gz
-RUN tar xzf node-v18.14.2-linux-x64.tar.gz -C /app/nodejs
-ENV NODE=/app/nodejs/node-v18.14.2-linux-x64/bin/node
-ENV NPM=/app/nodejs/node-v18.14.2-linux-x64/bin/npm
-RUN ls -lahi /app/nodejs/node-v18.14.2-linux-x64/
+# RUN mkdir -p /app/nodejs
+# RUN wget https://nodejs.org/download/release/v18.14.2/node-v18.14.2-linux-x64.tar.gz
+# RUN tar xzf node-v18.14.2-linux-x64.tar.gz -C /app/nodejs
+# ENV NODE=/app/nodejs/node-v18.14.2-linux-x64/bin/node
+# ENV NPM=/app/nodejs/node-v18.14.2-linux-x64/bin/npm
+# RUN ls -lahi /app/nodejs/node-v18.14.2-linux-x64/
+# RUN $NODE --version
+
+ENV NODE=node
+ENV NPM=npm
 RUN $NODE --version
 
 # Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
@@ -52,14 +56,16 @@ COPY --chown=pptruser:pptruser dipiper-server/package.json /app/dipiper-server/
 COPY --chown=pptruser:pptruser dipiper-server/*.js /app/dipiper-server/
 RUN ls -lahi /app/
 
-ENV NODE_PATH=/app/nodejs/node-v18.14.2-linux-x64/bin
+# ENV NODE_PATH=/app/nodejs/node-v18.14.2-linux-x64/bin
 ENV http_proxy=http://r.chiro.work:14514
 ENV https_proxy=http://r.chiro.work:14514
 # Install puppeteer so it's available in the container.
-RUN PATH=$PATH:$NODE_PATH $NPM i -g yarn
-RUN cd dipiper-server && PATH=$PATH:$NODE_PATH yarn
+# RUN PATH=$PATH:$NODE_PATH $NPM i -g yarn
+# RUN cd dipiper-server && PATH=$PATH:$NODE_PATH yarn
+RUN cd dipiper-server && yarn
 
 ENV FRONTEND_STATIC_PATH=/app/dist/
+ENV MONGO_URI="mongodb://dipiper:1352040930@a.chiro.work"
 
 COPY --chown=pptruser:pptruser financial-frontend/dist/ /app/dist/
 COPY --chown=pptruser:pptruser server/target/release/server /app/

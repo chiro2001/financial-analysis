@@ -2,10 +2,13 @@
 
 mod hybrid;
 
+use std::collections::HashMap;
+use std::sync::Mutex;
 use std::time::Duration;
 use anyhow::Result;
 use tower_http::cors::{AllowOrigin, CorsLayer};
 use http::header::HeaderName;
+use lazy_static::lazy_static;
 use tonic::{Code, Request, Response, Status};
 use tonic::transport::Server;
 use tracing::info;
@@ -16,6 +19,14 @@ use rpc::API_PORT;
 use tonic_web::GrpcWebLayer;
 
 pub const JRPC_HTTP_PREFIX: &'static str = "http://127.0.0.1:8000/api/v1";
+
+lazy_static! {
+    static ref USERS: Mutex<HashMap<String, String>> = {
+        let mut m = HashMap::new();
+        m.insert("test".to_string(), "test".to_string());
+        Mutex::new(m)
+    };
+}
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct JrpcResp<T> {
@@ -330,19 +341,27 @@ impl ApiRpc for ApiServer {
     async fn login(&self, request: Request<LoginRegisterRequest>) -> std::result::Result<Response<LoginResp>, Status> {
         let data = request.into_inner();
         info!("login: {:?}", data);
-        if data.username == "test" && data.password == "test" {
-            Ok(Response::new(LoginResp {
-                err: false,
-                token: "token".to_string(),
-                reason: "".to_string(),
-            }))
-        } else {
-            Ok(Response::new(LoginResp {
-                err: true,
-                token: "".to_string(),
-                reason: "用户名或密码错误".to_string(),
-            }))
-        }
+        let resp_err = LoginResp {
+            err: true,
+            token: "".to_string(),
+            reason: "用户名或密码错误".to_string(),
+        };
+        USERS.lock().map(|u| {
+            let r = if let Some(p) = u.get(&data.username) {
+                if p.as_str() == data.password.as_str() {
+                    LoginResp {
+                        err: false,
+                        token: "token".to_string(),
+                        reason: "".to_string(),
+                    }
+                } else {
+                    resp_err
+                }
+            } else {
+                resp_err
+            };
+            Response::new(r)
+        }).map_err(|e| Status::unknown(format!("Internal Error: {}", e)))
     }
 
     async fn stock_list(&self, _request: Request<()>) -> std::result::Result<Response<StockListResp>, Status> {
@@ -452,6 +471,8 @@ impl Register for RegisterService {
     async fn register(&self, request: Request<LoginRegisterRequest>) -> std::result::Result<Response<ReasonResp>, Status> {
         let data = request.into_inner();
         info!("register: {:?}", data);
+        USERS.lock().map(|mut u| u.insert(data.username, data.password))
+            .map_err(|e| Status::unknown(format!("Internal Error: {}", e)))?;
         Ok(Response::new(ReasonResp::default()))
     }
 }

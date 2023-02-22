@@ -1023,6 +1023,7 @@ dependencies = [
  "futures",
  "http",
  "hyper",
+ "lazy_static",
  "pin-project",
  "prost",
  "reqwest",
