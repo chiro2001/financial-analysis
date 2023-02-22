@@ -68,7 +68,8 @@ ENV FRONTEND_STATIC_PATH=/app/dist/
 ENV MONGO_URI="mongodb://dipiper:1352040930@a.chiro.work"
 
 COPY --chown=pptruser:pptruser financial-frontend/dist/ /app/dist/
-COPY --chown=pptruser:pptruser server/target/release/server /app/
+# COPY --chown=pptruser:pptruser server/target/release/server /app/
+COPY --chown=pptruser:pptruser server/target/x86_64-unknown-linux-musl/release/server /app/
 COPY --chown=pptruser:pptruser simple-lstm-server/ /app/simple-lstm-server
 COPY --chown=pptruser:pptruser docker_start.sh /app/
 EXPOSE 27017 51411 9090 8000
