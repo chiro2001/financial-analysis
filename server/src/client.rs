@@ -3,6 +3,7 @@ use rpc::api::LoginRegisterRequest;
 use rpc::API_PORT;
 use tracing::info;
 
+// 对 gRPC 两个 Service 的基本连接测试
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();

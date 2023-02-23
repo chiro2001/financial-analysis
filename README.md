@@ -6,7 +6,23 @@
 
 ### 拓扑结构
 
+![image-20230223094012643](README.assets/image-20230223094012643.png)
 
+### 文件结构
+
+```
+$ tree -L 2
+├── dipiper-server		爬虫服务器
+├── Dockerfile			Docker 配置
+├── docker_start.sh		Docker 脚本
+├── financial-frontend	客户端程序
+├── README.md			说明文档
+├── releases			发布文件
+│   ├── linux
+│   └── windows
+├── server				gRPC 服务端、静态文件服务器
+├── simple-lstm-server	AI 服务器
+```
 
 ## 运行说明
 
@@ -156,11 +172,74 @@ docker run -it --rm -p 51411:51411 chiro2001/financial-analysis:v2
 1. 功能丰富
    1. 提供多种功能 +上面列出的
 2. 界面美观
+   1. 提供了操作性强的界面
+   2. 在页面内提供窗口功能，便于对不同的数据进行比较
+
 3. 多端互联
    1. 使用 Rust 构建了大部分业务逻辑
    2. 同时使用 Rust 构建了客户端前端
-4. 使用
+   2. 实现了 PC 客户端、Android 软件端、网页端的完全相同的操作逻辑
+   2. 同时 PC 端并不是使用 Web 技术实现的，没有 Electron 的巨大体积
+4. 使用 Rust 新兴语言
    1. 使用编译型语言 Rust，运行速度快
    2. 客户端、服务端体积较小
-   3. 
+   3. 利于项目管理
+5. 将多种语言、架构、程序类型合并
+   1. 加强了系统的综合能力
 
+6. 使用 Docker 容器进行服务器布置
+   1. 减少因服务器环境不同造成的后端不兼容
+   2. 便于 Deploy 到不同的系统、设备上
+   3. 减小服务端体积
+
+7. 使用 gRPC、JRPC 进行数据沟通
+   1. 建立了统一的 API 格式，统一了前后端开发的流程
+   2. gRPC 基于 HTTP/2，能够同时支持长短连接，以及支持二进制数据直接传输，有助于提高反应速度、减小流量消耗
+   3. JRPC 提供更通用的 RPC 方案，便于多种不同语言之间的通信
+
+8. 融合的 HTTP 路由
+   1. 在同一个端口对 HTTP/1 和 HTTP/2 请求进行处理
+   2. 使用融合的 HTTP 路由保证两种请求都能正常执行
+   3. 减小了端口开支，便于发布和维护
+
+## 测试过程
+
+在项目中使用了许多测试方法，如回归测试、单元测试等。例如：
+
+1. 在 `server/src/client.rs` 中进行了单元测试：
+
+```rust
+use anyhow::Result;
+use rpc::api::LoginRegisterRequest;
+use rpc::API_PORT;
+use tracing::info;
+
+// 对 gRPC 两个 Service 的基本连接测试
+#[tokio::main]
+async fn main() -> Result<()> {
+    tracing_subscriber::fmt::init();
+    let addr = format!("http://0.0.0.0:{}", API_PORT);
+
+    let mut client = rpc::api::api_rpc_client::ApiRpcClient::connect(addr.clone()).await?;
+    info!("got client: {:?}", client);
+    let r = client.login(LoginRegisterRequest::default()).await?;
+    info!("login resp: {:?}", r);
+
+    let mut client = rpc::api::register_client::RegisterClient::connect(addr.clone()).await?;
+    info!("got register client: {:?}", client);
+    let r = client.register(LoginRegisterRequest::default()).await?;
+    info!("register resp: {:?}", r);
+
+    Ok(())
+}
+```
+
+2. 在许多 Rust 文件的注释中存在的测试。
+
+3. 在 Postman 中进行的 API 回归测试。
+
+   ![image-20230223110950620](README.assets/image-20230223110950620.png)
+
+4. 在 Github Action 上进行的持续性集成测试。
+
+   ![image-20230223111148313](README.assets/image-20230223111148313.png)
